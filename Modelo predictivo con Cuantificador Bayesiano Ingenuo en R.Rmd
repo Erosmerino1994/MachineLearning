@@ -1,0 +1,60 @@
+#Descripción: Este método de clasificación probabilístico está fundamentado en el teorema de Bayes, 
+#clasifica clases preestablecidas de una población dependiendo de sus variables independientes.
+
+#Para entender la peculiaridad del método se recurrirá al ejemplo típico de clasificar fruta, 
+#donde se considerada como una manzana una fruta si es amarilla, redonda y de alrededor de 7 cm de diámetro. 
+#Un clasificador de Bayes ingenuo considera que cada una de estas características contribuye de manera independiente 
+#a la probabilidad de que esta fruta sea una manzana, independientemente de la presencia o ausencia de las otras 
+#características.
+
+# Carga de datos inicial, tipos de flores con diferentes características 
+# Crea vector con repetición del dato entre comillas por el número de veces que se establezcan (100)
+color <- c(rep('amarilla',100), rep('naranja',100), rep('roja',100), rep('amarilla',100), rep('verde',100) )
+forma <- c(rep('redonda',300), rep('alargada',200))
+fruta <- c(rep('manzana',100),rep('mandarina',100), rep('sandia',100), rep('plátano',100), rep('melón',100) )
+
+#Crea vector con una distribución normal donde la primera variable es el numero de valores a obtener (100) y el segundo
+#la media del valor a obtener (11,6 etc..)
+tamano <- c(rnorm(100,11), rnorm(100,6), rnorm(100,25), rnorm(100,16),rnorm(100,24))
+calorias <- c(rnorm(100,52),rnorm(100,53), rnorm(100,30),rnorm(100,89),rnorm(100,34))
+
+aux <-matrix(c(color, forma, tamano, calorias, fruta), ncol = 5)
+colnames(aux) <- c('color', 'forma','tamano', 'calorías', 'fruta')
+datos<-data.frame(aux)
+
+#Calidad de datos: Corregimos tipos de variables, primero cargamos función dplyr y tidyr para manipular los datos
+install.packages('dplyr')
+install.packages('tidyr')
+library(dplyr)
+library(tidyr)
+datos <- datos %>%
+  mutate(tamano = as.numeric(tamano)) %>%
+  mutate(calorias = as.numeric(calorias)) %>%
+  mutate(fruta = as.factor(fruta))
+
+
+# Selección de una submuestra de 105 (el 70% de los datos)
+set.seed(101)
+tamano.total <- nrow(datos)
+tamano.train <- round(tamano.total*0.7)
+datos.indices <- sample(1:tamano.total , size=tamano.train)
+datos.train <- datos[datos.indices,]
+datos.test <- datos[-datos.indices,]
+
+# Ejecución del Clasificador bayesiano ingenuo 
+install.packages('e1071')
+library("e1071")
+modelo <- naiveBayes(fruta ~ ., data=datos.train)
+summary(modelo)
+
+# predict necesita el parámetro newdata
+results <- predict(modelo, newdata=datos.test) #Obtenemos la clase con mayor probabilidad que ha predecido que es
+results2 <- predict(modelo, newdata=datos.test, type="raw") #Obtenemos las probabilidades de ser de cada clase
+
+#Matriz de confusión que enfrenta las predicciones frente a la realidad
+mc <- table(results,datos.test$fruta)
+mc
+
+# Elementos correctamente clasificados
+correctos <- 100 * sum(diag(mc)) / sum(mc)
+correctos
