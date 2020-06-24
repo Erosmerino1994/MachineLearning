@@ -1,0 +1,70 @@
+
+Descripción: Tipo de análisis de regresión utilizado para predecir el resultado de una variable dicotómica. 
+Este modelo resulta útil para modelar la probabilidad ocurrencia de un evento en función de otros factores.
+
+Ejemplo en R: Clasificar si las piezas salen o no defectuosa atendiendo a la temperatura de la máquina.
+
+```{r}
+# Cargar los datos para realizar el análisis
+temperatura <-c(66,70,69,68,67,72,73,70,57,63,70,78,67,53,67,75,70,81,76,79,75,76,58)
+defecto <-c( 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1)
+aux <-matrix(c(temperatura,defecto),ncol = 2)
+colnames(aux) <- c('temperatura','defecto')
+datos<-data.frame(aux)
+```
+
+```{r}
+# Resumen de cuantos elementos hay de cada (tanto defectuosos como correctos)
+table(datos$defecto)
+```
+
+```{r}
+# Representar visualmente los datos
+colores <- NULL
+colores[datos$defecto == 0] <- "green"
+colores[datos$defecto == 1] <- "red"
+plot(datos$temperatura, datos$defecto, pch = 21, bg = colores, xlab = "Temperatura", ylab = "Prob. defecto")
+legend("bottomleft", c("No defecto", "Si defecto"), pch = 21, col = c("green", "red"))
+```
+
+```{r}
+# Ejecutar el modelo de regresión lineal generalizado y parametrizamos por binomial
+reg <- glm(defecto ~ temperatura, data = datos, family = binomial)
+summary(reg)
+```
+
+```{r}
+# Dibujar la recta de probabilidad para cada una de las temperaturas
+datos_probab <- data.frame(temperatura = seq(50, 85, 0.1))
+
+datos.predict <- predict(reg, datos_probab, type = "response")  # por defecto calcularía log p_i/(1-p_i), para calcular p_i usamos el argumento type
+
+plot(datos$temperatura, datos$defecto, pch = 21, bg = colores,  xlab = "Temperatura", ylab = "Prob. defecto")
+legend("bottomleft", c("No defecto", "Si defecto"), pch = 21, col = c("green", "red"))
+lines(datos_probab$temperatura, datos.predict, col = "blue", lwd = 2)
+```
+
+```{r}
+#Predecimos la probabilidad de defectos y la insertamos en el dataframe como columna extra
+
+datos$Fallo <- predict(reg,datos,type="response")
+
+#Tomamos la decisión de si será defectuosa la pieza en función a su probabilidad de defecto
+#Determinamos  que la pieza será defectuosa cuando haya una probabilidad de defectos superior al 50%
+datos$predic <- ifelse(datos$Fallo > 0.5,1,0)
+
+#Enfrentamos la predicción contra la realidad
+table(datos$predic,datos$defecto)
+```
+
+```{r}
+#Predecimos si una pieza es buena o defectuosa para una temperatura de 60ºC
+
+Prob.def <- data.frame(temperatura=60)
+Prediccion <- predict(reg, Prob.def, type = "response")
+if (Prediccion >= 0.5) {
+  print("Pieza defectuosa")
+}else{
+  print("Pieza buena")
+}
+```
