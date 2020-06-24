@@ -1,6 +1,6 @@
 Vamos a llevar a cabo el desarrollo de un proyecto que nos permitiría predecir los fallos de una máquina industrial.
 Para ello, será necesario un análisis de los datos, luego una transformación de los mismos para poder ser tratados 
-de forma óptima y finalmente se creará el modelo que permitirá hacer predicciones.
+de forma óptima y finalmente se creará el modelo que permitirá hacer predicciones
 
 En primer lugar desactivamos la notación científica
 
