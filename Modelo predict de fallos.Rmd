@@ -270,4 +270,4 @@ mc
 100 * sum(diag(mc)) / sum(mc)
 ```
 
-He aumentado mi capacidad predictiva a más de un 96%.
+He aumentado mi capacidad predictiva a más de un 96%
